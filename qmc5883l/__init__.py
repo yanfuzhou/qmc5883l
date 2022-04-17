@@ -11,7 +11,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.1.4'
+__version__ = '1.1.5'
 
 """HISTORY
 1.0.0 - First
@@ -109,24 +109,26 @@ class QMC5883L(object):
         ])
 
     def get_temp(self):
-        t = self._read_data_from_i2c_block(REG_TEMP_LSB)
+        data = self.bus.read_i2c_block_data(self.adress, REG_TEMP_LSB, 2)
+        t = self._read_data_from_i2c_block(data, REG_TEMP_LSB)
         return t
 
-    def _read_data_from_i2c_block(self, offset):
+    @staticmethod
+    def _convert_data(data, offset):
         if offset == REG_TEMP_LSB:
-            data = self.bus.read_i2c_block_data(self.adress, REG_TEMP_LSB, 2)
             val = (data[1] | data[0])
         else:
-            data = self.bus.read_i2c_block_data(self.adress, REG_OUT_X_LSB, 6)
             val = (data[offset + 1] | data[offset])
         if val >= 2 ** 15:
-            val = val - 2 ** 16
-        return val
+            return val - 2 ** 16
+        else:
+            return val
 
     def get_magnet_raw(self):
-        x = self._read_data_from_i2c_block(REG_OUT_X_LSB)
-        y = self._read_data_from_i2c_block(REG_OUT_Y_LSB)
-        z = self._read_data_from_i2c_block(REG_OUT_Z_LSB)
+        data = self.bus.read_i2c_block_data(self.adress, REG_OUT_X_LSB, 6)
+        x = self._convert_data(data, REG_OUT_X_LSB)
+        y = self._convert_data(data, REG_OUT_Y_LSB)
+        z = self._convert_data(data, REG_OUT_Z_LSB)
         return [x, y, z]
 
     def get_magnet(self):
