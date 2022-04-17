@@ -1,3 +1,4 @@
+import time
 import math
 import logging
 from smbus2 import SMBus
@@ -11,7 +12,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.1.7'
+__version__ = '1.1.8'
 
 """HISTORY
 1.0.0 - First
@@ -99,6 +100,8 @@ class QMC5883L(object):
             (int(self.interupt) | int(self.pointer_roll) * (2 ** 6) | int(self.restore) * (2 ** 7)),
             1
         ])
+        time.sleep(0.01)
+        print(self.bus.read_i2c_block_data(self.adress, REG_CONF_1, 3))
 
     def mode_standby(self):
         self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
