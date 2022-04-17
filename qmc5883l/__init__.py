@@ -12,7 +12,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.0.8'
+__version__ = '1.0.9'
 
 """HISTORY
 1.0.0 - First
@@ -93,8 +93,8 @@ class QMC5883L(object):
     def set_config(self):
         self.bus.write_i2c_block_data(self.adress, REG_CONF_2, [
             int(self.interupt), 0, 0, 0, 0, 0,
-            int(self.pointer_roll),
-            int(self.restore)
+            int(self.pointer_roll * (2 ** 6)),
+            int(self.restore * (2 ** 7))
         ])
         self.bus.write_i2c_block_data(self.adress, REG_RST_PERIOD, [1])
         self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
