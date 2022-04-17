@@ -1,4 +1,5 @@
 import math
+import time
 import logging
 from smbus2 import SMBus
 
@@ -11,7 +12,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.2.3'
+__version__ = '1.2.4'
 
 """HISTORY
 1.0.0 - First
@@ -96,17 +97,33 @@ class QMC5883L(object):
         self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
             (int(self.cont_mode) | int(self.rate) * (2 ** 2) | int(self.full_scale) * (2 ** 4) |
              int(self.over_sampling_rate) * (2 ** 6)),
+            (int(self.interupt) | int(self.pointer_roll) * (2 ** 6) | int(not self.restore) * (2 ** 7)),
+            1
+        ])
+        time.sleep(0.01)
+        self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
+            (int(self.cont_mode) | int(self.rate) * (2 ** 2) | int(self.full_scale) * (2 ** 4) |
+             int(self.over_sampling_rate) * (2 ** 6)),
             (int(self.interupt) | int(self.pointer_roll) * (2 ** 6) | int(self.restore) * (2 ** 7)),
             1
         ])
+        time.sleep(0.01)
 
     def mode_standby(self):
+        self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
+            (int(not self.cont_mode) | int(self.rate) * (2 ** 2) | int(self.full_scale) * (2 ** 4) |
+             int(OSR.get(64)) * (2 ** 6)),
+            (int(self.interupt) | int(self.pointer_roll) * (2 ** 6) | int(not self.restore) * (2 ** 7)),
+            1
+        ])
+        time.sleep(0.01)
         self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
             (int(not self.cont_mode) | int(self.rate) * (2 ** 2) | int(self.full_scale) * (2 ** 4) |
              int(OSR.get(64)) * (2 ** 6)),
             (int(self.interupt) | int(self.pointer_roll) * (2 ** 6) | int(self.restore) * (2 ** 7)),
             1
         ])
+        time.sleep(0.01)
 
     def get_temp(self):
         data = self.bus.read_i2c_block_data(self.adress, REG_TEMP_LSB, 2)
