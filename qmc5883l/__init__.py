@@ -1,3 +1,4 @@
+import time
 import math
 import logging
 from smbus2 import SMBus
@@ -11,7 +12,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.0.5'
+__version__ = '1.0.7'
 
 """HISTORY
 1.0.0 - First
@@ -90,10 +91,20 @@ class QMC5883L(object):
         self.set_config()
 
     def set_config(self):
-        self.cntrl_reg2 = self.pointer_roll * (2 ** 6)
-        self.cntrl_reg2 = self.restore * (2 ** 7)
-        self.cntrl_reg2 = self.interupt
-        self.bus.write_byte_data(self.adress, REG_CONF_2, self.cntrl_reg2)
+        if self.restore:
+            self.cntrl_reg2 = self.restore * (2 ** 7)
+            self.bus.write_byte_data(self.adress, REG_CONF_2, self.cntrl_reg2)
+            time.sleep(0.01)
+        if self.pointer_roll:
+            self.cntrl_reg2 = self.pointer_roll * (2 ** 6)
+            self.bus.write_byte_data(self.adress, REG_CONF_2, self.cntrl_reg2)
+            time.sleep(0.01)
+        if self.interupt:
+            self.cntrl_reg2 = self.interupt
+            self.bus.write_byte_data(self.adress, REG_CONF_2, self.cntrl_reg2)
+            time.sleep(0.01)
+        self.bus.write_byte_data(self.adress, REG_RST_PERIOD, 1)
+        time.sleep(0.01)
         if self.cont_mode:
             self.cntrl_reg1 = 1
         if self.full_scale:
@@ -103,6 +114,7 @@ class QMC5883L(object):
         self.cntrl_reg1 = self.cntrl_reg1 + self.over_sampling_rate * (2 ** 4)
         self.cntrl_reg1 = self.cntrl_reg1 + self.rate * (2 ** 6)
         self.bus.write_byte_data(self.adress, REG_CONF_1, self.cntrl_reg1)
+        time.sleep(0.01)
 
     def get_temp(self):
         t = self._read_data_from_i2c_block(REG_TEMP_LSB)
