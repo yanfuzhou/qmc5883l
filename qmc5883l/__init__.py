@@ -12,7 +12,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.1.2'
+__version__ = '1.1.3'
 
 """HISTORY
 1.0.0 - First
@@ -102,15 +102,12 @@ class QMC5883L(object):
         ])
 
     def get_temp(self):
-        t = self._read_data_from_i2c_block(REG_TEMP_LSB, bl=2)
+        t = self._read_data_from_i2c_block(REG_TEMP_LSB)
         return t
 
-    def _read_data_from_i2c_block(self, offset=REG_OUT_X_LSB, bl=6):
-        data = self.bus.read_i2c_block_data(self.adress, REG_OUT_X_LSB, bl)
-        if offset == REG_TEMP_LSB:
-            val = ((data[1] << 8) + data[0])
-        else:
-            val = ((data[offset + 1] << 8) + data[offset])
+    def _read_data_from_i2c_block(self, offset=REG_OUT_X_LSB, bl=2):
+        data = self.bus.read_i2c_block_data(self.adress, offset, bl)
+        val = ((data[1] << 8) + data[0])
         if val >= 2 ** 15:
             val = val - 2 ** 16
         return val
