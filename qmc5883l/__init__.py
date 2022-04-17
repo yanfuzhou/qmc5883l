@@ -1,6 +1,6 @@
 import math
 import logging
-from smbus import SMBus
+from smbus2 import SMBus
 
 
 """Driver for the QMC5883l 3-Axis Magnetic Sensor
@@ -11,7 +11,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.1.6'
+__version__ = '1.1.7'
 
 """HISTORY
 1.0.0 - First
