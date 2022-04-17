@@ -11,7 +11,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 
 """HISTORY
 1.0.0 - First
@@ -54,7 +54,7 @@ class QMC5883L(object):
                  rate=10,
                  full_scale=False,
                  over_sampling_rate=512,
-                 interupt=True,
+                 interupt=False,
                  pointer_roll=False,
                  restore=False
                  ):
