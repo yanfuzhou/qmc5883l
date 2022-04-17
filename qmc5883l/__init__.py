@@ -1,4 +1,3 @@
-import time
 import math
 import logging
 from smbus2 import SMBus
@@ -12,7 +11,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.1.3'
+__version__ = '1.1.4'
 
 """HISTORY
 1.0.0 - First
@@ -88,26 +87,38 @@ class QMC5883L(object):
         if chip_id != 0xff:
             msg = "Chip ID returned 0x%x instead of 0xff; is the wrong chip?"
             logging.warning(msg, chip_id)
-        self.set_config()
+        self.mode_continuous()
 
-    def set_config(self):
-        self.bus.write_i2c_block_data(self.adress, REG_CONF_2, [
-            int(self.restore * (2 ** 7)),
-            int(self.pointer_roll * (2 ** 6)),
-            0, 0, 0, 0, 0, int(self.interupt)
-        ])
-        self.bus.write_i2c_block_data(self.adress, REG_RST_PERIOD, [1])
+    def __del__(self):
+        self.mode_standby()
+
+    def mode_continuous(self):
         self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
-            int(self.over_sampling_rate), int(self.full_scale), int(self.rate), int(self.cont_mode)
+            (int(self.cont_mode) | int(self.rate) * (2 ** 2) | int(self.full_scale) * (2 ** 4) |
+             int(self.over_sampling_rate) * (2 ** 6)),
+            (int(self.interupt) | int(self.pointer_roll) * (2 ** 6) | int(self.restore) * (2 ** 7)),
+            1
+        ])
+
+    def mode_standby(self):
+        self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
+            (int(not self.cont_mode) | int(self.rate) * (2 ** 2) | int(self.full_scale) * (2 ** 4) |
+             int(OSR.get(64)) * (2 ** 6)),
+            (int(self.interupt) | int(self.pointer_roll) * (2 ** 6) | int(self.restore) * (2 ** 7)),
+            1
         ])
 
     def get_temp(self):
         t = self._read_data_from_i2c_block(REG_TEMP_LSB)
         return t
 
-    def _read_data_from_i2c_block(self, offset=REG_OUT_X_LSB, bl=2):
-        data = self.bus.read_i2c_block_data(self.adress, offset, bl)
-        val = ((data[1] << 8) + data[0])
+    def _read_data_from_i2c_block(self, offset):
+        if offset == REG_TEMP_LSB:
+            data = self.bus.read_i2c_block_data(self.adress, REG_TEMP_LSB, 2)
+            val = (data[1] | data[0])
+        else:
+            data = self.bus.read_i2c_block_data(self.adress, REG_OUT_X_LSB, 6)
+            val = (data[offset + 1] | data[offset])
         if val >= 2 ** 15:
             val = val - 2 ** 16
         return val
