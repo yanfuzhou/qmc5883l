@@ -1,6 +1,6 @@
 import math
 import logging
-from smbus2 import SMBus
+from smbus import SMBus
 
 
 """Driver for the QMC5883l 3-Axis Magnetic Sensor
@@ -11,7 +11,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.1.5'
+__version__ = '1.1.6'
 
 """HISTORY
 1.0.0 - First
@@ -110,7 +110,7 @@ class QMC5883L(object):
 
     def get_temp(self):
         data = self.bus.read_i2c_block_data(self.adress, REG_TEMP_LSB, 2)
-        t = self._read_data_from_i2c_block(data, REG_TEMP_LSB)
+        t = self._convert_data(data, REG_TEMP_LSB)
         return t
 
     @staticmethod
