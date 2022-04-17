@@ -12,7 +12,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 """HISTORY
 1.0.0 - First
@@ -91,36 +91,21 @@ class QMC5883L(object):
         self.set_config()
 
     def set_config(self):
-        if self.restore:
-            self.cntrl_reg2 = self.restore * (2 ** 7)
-            self.bus.write_byte_data(self.adress, REG_CONF_2, self.cntrl_reg2)
-            time.sleep(0.01)
-        if self.pointer_roll:
-            self.cntrl_reg2 = self.pointer_roll * (2 ** 6)
-            self.bus.write_byte_data(self.adress, REG_CONF_2, self.cntrl_reg2)
-            time.sleep(0.01)
-        if self.interupt:
-            self.cntrl_reg2 = self.interupt
-            self.bus.write_byte_data(self.adress, REG_CONF_2, self.cntrl_reg2)
-            time.sleep(0.01)
-        self.bus.write_byte_data(self.adress, REG_RST_PERIOD, 1)
-        time.sleep(0.01)
-        if self.cont_mode:
-            self.cntrl_reg1 = 1
-        if self.full_scale:
-            self.cntrl_reg1 = self.cntrl_reg1 + 1 * (2 ** 2)
-        else:
-            self.cntrl_reg1 = self.cntrl_reg1 + 0 * (2 ** 2)
-        self.cntrl_reg1 = self.cntrl_reg1 + self.over_sampling_rate * (2 ** 4)
-        self.cntrl_reg1 = self.cntrl_reg1 + self.rate * (2 ** 6)
-        self.bus.write_byte_data(self.adress, REG_CONF_1, self.cntrl_reg1)
-        time.sleep(0.01)
+        self.bus.write_i2c_block_data(self.adress, REG_CONF_2, [
+            int(self.interupt), 0, 0, 0, 0, 0,
+            int(self.pointer_roll),
+            int(self.restore)
+        ])
+        self.bus.write_i2c_block_data(self.adress, REG_RST_PERIOD, [1])
+        self.bus.write_i2c_block_data(self.adress, REG_CONF_1, [
+            int(self.cont_mode), int(self.rate), int(self.full_scale), int(self.over_sampling_rate)
+        ])
 
     def get_temp(self):
-        t = self._read_data_from_i2c_block(REG_TEMP_LSB)
+        t = self._read_data_from_i2c_block(REG_TEMP_LSB, bl=2)
         return t
 
-    def _read_data_from_i2c_block(self, offset, bl=6):
+    def _read_data_from_i2c_block(self, offset=REG_OUT_X_LSB, bl=6):
         data = self.bus.read_i2c_block_data(self.adress, offset, bl)
         val = ((data[offset + 1] << 8) + data[offset])
         if val >= 2 ** 15:
