@@ -11,7 +11,7 @@ Datasheet: https://github.com/e-Gizmo/QMC5883L-GY-271-Compass-module/blob/master
 __author__ = "Yanfu Zhou"
 __email__ = "yanfu.zhou@outlook.com"
 __license__ = 'MIT'
-__version__ = '1.2.5'
+__version__ = '1.2.6'
 
 """HISTORY
 1.0.0 - First
@@ -128,9 +128,9 @@ class QMC5883L(object):
     @staticmethod
     def _convert_data(data, offset):
         if offset == REG_TEMP_LSB:
-            val = ((data[1] << 8) + data[0])
+            val = (data[0] | (data[1] << 8))
         else:
-            val = ((data[offset + 1] << 8) + data[offset])
+            val = (data[offset] | (data[offset + 1] << 8))
         if val >= 2 ** 15:
             return val - 2 ** 16
         else:
